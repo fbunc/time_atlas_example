@@ -108,7 +108,7 @@ def plot_atlas(atlas,symbol,cmap,alpha,sx,sy,legend_flag,variable_sizes,base_siz
 def get_atlas_video(atlas_in, symbol, fps, colormap, output_path, variable_size, fixed_size,padding,sx,sy):
     markers, norm, colors, norm_seq, sizes = get_colors(symbol, colormap, variable_size, fixed_size)
 
-    init_atlas(20, 20)
+    # init_atlas(20, 20)
 
     fig, ax = plt.subplots(figsize=(sx, sy))
     scatter = ax.scatter([], [], color=[], s=[], edgecolors='black', alpha=0.5)
