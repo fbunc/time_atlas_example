@@ -3,6 +3,7 @@ import numpy as np
 import calendar
 import random
 import matplotlib.pyplot as plt
+from matplotlib.path import Path
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import image
@@ -102,6 +103,70 @@ def plot_atlas(atlas,symbol,cmap,alpha,sx,sy,legend_flag,variable_sizes,base_siz
         plt.scatter(atlas[i].real, atlas[i].imag, color=colors[i], s=sizes[i], marker=markers[i], facecolor=colors[i], edgecolors='black', alpha=alpha)
     if legend_flag:
         cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap))
+
+
+def get_atlas_video(atlas_in, symbol, fps, colormap, output_path, variable_size, fixed_size,padding,sx,sy):
+    markers, norm, colors, norm_seq, sizes = get_colors(symbol, colormap, variable_size, fixed_size)
+
+    init_atlas(20, 20)
+
+    fig, ax = plt.subplots(figsize=(sx, sy))
+    scatter = ax.scatter([], [], color=[], s=[], edgecolors='black', alpha=0.5)
+
+    frames = len(atlas_in)
+    x_values = []
+    y_values = []
+    sizes_values = []
+    colors_values = []
+    markers_values = []
+
+    def update(frame):
+        # Accumulate coordinates, sizes, colors, and markers from all previous frames
+        x_values.extend([atlas_in[frame].real])
+        y_values.extend([atlas_in[frame].imag])
+        sizes_values.extend([sizes[frame]])
+        colors_values.extend([colors[frame]])
+        markers_values.extend([symbol[frame]])
+
+        # Update the scatter plot with accumulated coordinates, sizes, colors, and markers
+        scatter.set_offsets(np.column_stack((x_values, y_values)))
+        scatter.set_sizes(sizes_values)
+        scatter.set_color(colors_values)
+        scatter.set_edgecolors('black')
+        scatter.set_alpha(0.5)
+
+        # Determine marker based on the value of the symbol for all frames
+        marker_paths = []
+        for marker in markers_values:
+            if marker >= 0:
+                marker_path = Path.unit_circle()
+            else:
+                marker_path = Path.unit_regular_polygon(4)
+            marker_paths.append(marker_path)
+
+        scatter.set_paths(marker_paths)
+
+        # Adjust the axis limits based on the data
+        ax.set_xlim(np.min(x_values) - padding, np.max(x_values) + padding)
+        ax.set_ylim(np.min(y_values) - padding, np.max(y_values) + padding)
+
+    animation = FuncAnimation(fig, update, frames=frames, blit=False)
+
+    # Specify the writer (FFMpegWriter) and the output filename
+    writer = FFMpegWriter(fps=fps)  # Adjust the frames per second (fps) as needed
+    animation.save(output_path, writer=writer)
+
+
+
+
+
+
+
+
+
+
+
+
 
 def isPrime(n):
     # Check if n is less than 2
@@ -467,6 +532,33 @@ def plot_eigen_atlas(eigen_atlas,sx,sy,start,end,allow_scatter,allow_text,allow_
 
 # atlas = clk_0+clk_1+clk_2+clk_3
 # plot_atlas(atlas=atlas,symbol=hour,cmap=plt.cm.hsv,alpha=0.5,sx=20,sy=20,legend_flag=1,variable_sizes=1,base_size=1)
+
+
+
+
+
+
+
+
+
+#########################################################################################################
+#### ANIMATIONS######
+
+# symbol=hour
+# #symbol=hour
+# #atlas_in = clk_0 + clk_1 + clk_2 + clk_3
+# fps=10
+# colormap=plt.cm.hsv
+# output_path='High_res_hourly_filtered_variable_size.mp4'
+# variable_size=1#flag 1 for variable size or 0 for fixed size
+# fixed_size=2
+# padding=0.008
+# start=0
+# end=atlas.size
+# sx=10
+# sy=10
+# get_atlas_video(atlas[start:end],symbol[start:end],fps,colormap,output_path,variable_size,fixed_size,padding,sx,sy)
+
 
 
 
